@@ -24,7 +24,8 @@ import VideoPlayer from '@/components/VideoPlayer';
 import ScriptEditor from '@/components/ScriptEditor';
 import VideoProcessController from '@/components/VideoProcessController';
 import { loadProjectFromFile } from '@/services/tauriService';
-import type { Project, VideoMetadata, Script } from '@/types';
+import type { Project, Script } from '@/types';
+import type { VideoMetadata } from '@/services/videoService';
 
 const { Content } = Layout;
 const { Title, Text } = Typography;

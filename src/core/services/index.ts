@@ -2,6 +2,11 @@
  * Services 统一导出
  */
 
+// 导出基类和错误类型
+export { BaseService, ServiceError } from './base.service';
+export type { RequestConfig as BaseRequestConfig } from './base.service';
+
+// 导出各个服务
 export { aiService } from './ai.service';
 export { videoService } from './video.service';
 export { storageService } from './storage.service';

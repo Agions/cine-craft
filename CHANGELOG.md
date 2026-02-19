@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [1.1.0] - 2026-02-17
 
 ### Renamed
-- **Project Name**: ReelForge → CineCraft (电影工坊)
+- **Project Name**: ReelForge → ClipFlow (电影工坊)
   - New ASCII art logo
   - Updated all documentation references
 

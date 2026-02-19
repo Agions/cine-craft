@@ -1,7 +1,6 @@
-import { invoke } from '@tauri-apps/api/tauri';
 import { saveFile } from './tauriService';
 import { message } from 'antd';
-import { Script, ScriptSegment } from './aiService';
+import { Script } from './aiService';
 import { formatTime, formatDate } from '@/utils/format';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -31,8 +30,8 @@ export const exportScript = async (
 ): Promise<boolean> => {
   try {
     let content: string = '';
-    let fileExtension: string = format;
-    let filters = [{ name: '文本文件', extensions: [format] }];
+    const fileExtension: string = format;
+    let filters: Array<{ name: string; extensions: string[] }> = [{ name: '文本文件', extensions: [format] }];
     
     switch (format) {
       case ExportFormat.TXT:
@@ -75,7 +74,7 @@ const formatAsTxt = (script: Script): string => {
   content += `最后更新: ${formatDate(script.updatedAt)}\n\n`;
   content += `===== 完整脚本 =====\n\n`;
   
-  segments.forEach((segment, index) => {
+  segments.forEach((segment) => {
     content += `[${formatTime(segment.startTime)} - ${formatTime(segment.endTime)}] `;
     content += `${segment.content}\n\n`;
   });
@@ -168,7 +167,6 @@ const exportAsPdf = async (script: Script, filename: string): Promise<boolean> =
     
     // 保存PDF文件
     const pdfData = doc.output();
-    const base64Data = btoa(pdfData);
     
     // 使用Tauri保存文件
     const saved = await saveFile(
@@ -256,7 +254,7 @@ const formatAsHtml = (script: Script): string => {
   <div class="script-container">
 `;
   
-  segments.forEach((segment, index) => {
+  segments.forEach((segment) => {
     content += `
     <div class="segment">
       <div class="time">[${formatTime(segment.startTime)} - ${formatTime(segment.endTime)}]</div>

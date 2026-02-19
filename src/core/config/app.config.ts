@@ -5,21 +5,21 @@
 
 // 应用信息
 export const APP_CONFIG = {
-  name: 'ReelForge',
+  name: 'ClipFlow',
   version: '1.0.0',
   description: 'AI驱动的专业视频内容创作平台',
-  repository: 'https://github.com/Agions/reelforge',
+  repository: 'https://github.com/Agions/clipflow',
   license: 'MIT'
 } as const;
 
 // 存储配置
 export const STORAGE_CONFIG = {
-  prefix: 'cineforge_',
+  prefix: 'clipflow_',
   keys: {
-    store: 'cineforge-store',
-    settings: 'cineforge-settings',
-    projects: 'cineforge-projects',
-    cache: 'cineforge-cache'
+    store: 'clipflow-store',
+    settings: 'clipflow-settings',
+    projects: 'clipflow-projects',
+    cache: 'clipflow-cache'
   }
 } as const;
 

@@ -186,29 +186,6 @@ export async function readFromClipboard(): Promise<string> {
 }
 
 /**
- * 随机颜色
- */
-export function randomColor(): string {
-  const letters = '0123456789ABCDEF';
-  let color = '#';
-  for (let i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
-}
-
-/**
- * 颜色对比度
- */
-export function getContrastColor(hexColor: string): string {
-  const r = parseInt(hexColor.substr(1, 2), 16);
-  const g = parseInt(hexColor.substr(3, 2), 16);
-  const b = parseInt(hexColor.substr(5, 2), 16);
-  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-  return yiq >= 128 ? '#000000' : '#FFFFFF';
-}
-
-/**
  * 截断文本
  */
 export function truncateText(text: string, maxLength: number, suffix: string = '...'): string {
@@ -221,86 +198,6 @@ export function truncateText(text: string, maxLength: number, suffix: string = '
  */
 export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-/**
- * 驼峰转短横线
- */
-export function camelToKebab(str: string): string {
-  return str.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2').toLowerCase();
-}
-
-/**
- * 短横线转驼峰
- */
-export function kebabToCamel(str: string): string {
-  return str.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-}
-
-/**
- * 数组分块
- */
-export function chunkArray<T>(array: T[], size: number): T[][] {
-  const chunks: T[][] = [];
-  for (let i = 0; i < array.length; i += size) {
-    chunks.push(array.slice(i, i + size));
-  }
-  return chunks;
-}
-
-/**
- * 数组去重
- */
-export function uniqueArray<T>(array: T[]): T[] {
-  return [...new Set(array)];
-}
-
-/**
- * 数组排序
- */
-export function sortBy<T>(
-  array: T[],
-  key: keyof T,
-  order: 'asc' | 'desc' = 'asc'
-): T[] {
-  return [...array].sort((a, b) => {
-    const aVal = a[key];
-    const bVal = b[key];
-
-    if (aVal < bVal) return order === 'asc' ? -1 : 1;
-    if (aVal > bVal) return order === 'asc' ? 1 : -1;
-    return 0;
-  });
-}
-
-/**
- * 对象过滤
- */
-export function filterObject<T extends Record<string, any>>(
-  obj: T,
-  predicate: (key: string, value: any) => boolean
-): Partial<T> {
-  const result: Partial<T> = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (predicate(key, value)) {
-      result[key as keyof T] = value;
-    }
-  }
-  return result;
-}
-
-/**
- * 对象映射
- */
-export function mapObject<T, U>(
-  obj: Record<string, T>,
-  mapper: (key: string, value: T) => U
-): Record<string, U> {
-  const result: Record<string, U> = {};
-  for (const [key, value] of Object.entries(obj)) {
-    result[key] = mapper(key, value);
-  }
-  return result;
 }
 
 /**

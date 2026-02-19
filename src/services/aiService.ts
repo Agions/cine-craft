@@ -4,7 +4,7 @@ import { message } from 'antd';
 import { v4 as uuidv4 } from 'uuid';
 import { getApiKey } from './tauriService';
 import { formatDuration } from '@/utils/format';
-import { AIModelType, AIModel } from '@/types';
+import { AIModelType, AIModelConfig } from '@/types';
 import { VideoMetadata } from './videoService';
 
 export interface ScriptGenerationSettings {
@@ -12,7 +12,7 @@ export interface ScriptGenerationSettings {
   tone?: string;     // 语气: 正式/轻松/专业等
   targetLength?: number;  // 目标时长(秒)
   instruction?: string;   // 特殊指令
-  aiModel?: AIModel;      // 使用的AI模型
+  aiModel?: AIModelConfig;      // 使用的AI模型
 }
 
 export interface ScriptSegment {

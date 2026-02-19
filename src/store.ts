@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { AIModelType, AIModelSettings, AI_MODEL_INFO } from './types';
+import { AIModelType, AIModelSettings } from '@/types';
 
 interface AppState {
   // AI 模型相关状态

@@ -38,7 +38,7 @@ export const exportScriptToPDF = (script: Script, projectName: string) => {
   
   // 计算总时长
   const totalDuration = script.content.reduce(
-    (acc, segment) => acc + (segment.endTime - segment.startTime),
+    (acc: number, segment: Script['content'][0]) => acc + (segment.endTime - segment.startTime),
     0
   );
   doc.text(`总时长: ${Math.floor(totalDuration / 60)}分${totalDuration % 60}秒`, 14, 40);
@@ -74,14 +74,16 @@ export const exportScriptToPDF = (script: Script, projectName: string) => {
   });
   
   // 添加页脚
-  const pageCount = doc.internal.getNumberOfPages();
+  const pageCount = (doc as any).internal.pages.length - 1;
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(8);
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
     doc.text(
-      `BlazeCut - 第 ${i} 页，共 ${pageCount} 页`,
-      doc.internal.pageSize.getWidth() / 2,
-      doc.internal.pageSize.getHeight() - 10,
+      `CineCraft - 第 ${i} 页，共 ${pageCount} 页`,
+      pageWidth / 2,
+      pageHeight - 10,
       { align: 'center' }
     );
   }

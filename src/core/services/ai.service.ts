@@ -4,6 +4,7 @@
  */
 
 import { message } from 'antd';
+import { BaseService, ServiceError } from './base.service';
 import type { AIModel, AIModelSettings, ScriptData, VideoAnalysis } from '@/core/types';
 import { LLM_MODELS, DEFAULT_LLM_MODEL, MODEL_RECOMMENDATIONS } from '@/core/constants';
 
@@ -27,8 +28,47 @@ interface RequestConfig {
   stream?: boolean;
 }
 
-class AIService {
+// 模型提供商配置
+interface ModelProvider {
+  name: string;
+  baseUrl: string;
+  requiresApiSecret?: boolean;
+}
+
+const MODEL_PROVIDERS: Record<string, ModelProvider> = {
+  openai: {
+    name: 'OpenAI',
+    baseUrl: 'https://api.openai.com/v1'
+  },
+  anthropic: {
+    name: 'Anthropic',
+    baseUrl: 'https://api.anthropic.com/v1'
+  },
+  google: {
+    name: 'Google',
+    baseUrl: 'https://generativelanguage.googleapis.com/v1beta'
+  },
+  baidu: {
+    name: '百度文心',
+    baseUrl: 'https://aip.baidubce.com',
+    requiresApiSecret: true
+  },
+  alibaba: {
+    name: '阿里通义千问',
+    baseUrl: 'https://dashscope.aliyuncs.com'
+  },
+  zhipu: {
+    name: '智谱GLM',
+    baseUrl: 'https://open.bigmodel.cn/api/paas/v4'
+  }
+};
+
+class AIService extends BaseService {
   private abortControllers: Map<string, AbortController> = new Map();
+
+  constructor() {
+    super('AIService', { timeout: 60000, retries: 2 });
+  }
 
   /**
    * 生成脚本
@@ -48,34 +88,34 @@ class AIService {
       videoDuration?: number;
     }
   ): Promise<ScriptData> {
-    const prompt = this.buildScriptPrompt(params);
-    
-    try {
-      const response = await this.callAPI(model, settings, prompt);
-      
-      return {
-        id: `script_${Date.now()}`,
-        title: params.topic,
-        content: response.content,
-        segments: this.parseScriptSegments(response.content),
-        metadata: {
-          style: params.style,
-          tone: params.tone,
-          length: params.length as 'short' | 'medium' | 'long',
-          targetAudience: params.audience,
-          language: params.language,
-          wordCount: response.content.length,
-          estimatedDuration: this.estimateDuration(response.content.length),
-          generatedBy: model.id,
-          generatedAt: new Date().toISOString()
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-    } catch (error) {
-      console.error('脚本生成失败:', error);
-      throw error;
-    }
+    return this.executeRequest(
+      async () => {
+        const prompt = this.buildScriptPrompt(params);
+        const response = await this.callAPI(model, settings, prompt);
+        
+        return {
+          id: `script_${Date.now()}`,
+          title: params.topic,
+          content: response.content,
+          segments: this.parseScriptSegments(response.content),
+          metadata: {
+            style: params.style,
+            tone: params.tone,
+            length: params.length as 'short' | 'medium' | 'long',
+            targetAudience: params.audience,
+            language: params.language,
+            wordCount: response.content.length,
+            estimatedDuration: this.estimateDuration(response.content.length),
+            generatedBy: model.id,
+            generatedAt: new Date().toISOString()
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+      },
+      '生成脚本',
+      { loadingMessage: '正在生成脚本...' }
+    );
   }
 
   /**
@@ -91,22 +131,21 @@ class AIService {
       format: string;
     }
   ): Promise<Partial<VideoAnalysis>> {
-    const prompt = this.buildAnalysisPrompt(videoInfo);
-    
-    try {
-      const response = await this.callAPI(model, settings, prompt);
-      
-      // 解析分析结果
-      return {
-        summary: response.content,
-        scenes: this.generateMockScenes(videoInfo.duration),
-        keyframes: this.generateMockKeyframes(videoInfo.duration),
-        createdAt: new Date().toISOString()
-      };
-    } catch (error) {
-      console.error('视频分析失败:', error);
-      throw error;
-    }
+    return this.executeRequest(
+      async () => {
+        const prompt = this.buildAnalysisPrompt(videoInfo);
+        const response = await this.callAPI(model, settings, prompt);
+        
+        return {
+          summary: response.content,
+          scenes: this.generateMockScenes(videoInfo.duration),
+          keyframes: this.generateMockKeyframes(videoInfo.duration),
+          createdAt: new Date().toISOString()
+        };
+      },
+      '分析视频',
+      { loadingMessage: '正在分析视频...' }
+    );
   }
 
   /**
@@ -118,15 +157,15 @@ class AIService {
     script: string,
     optimization: 'shorten' | 'lengthen' | 'simplify' | 'professional'
   ): Promise<string> {
-    const prompt = this.buildOptimizationPrompt(script, optimization);
-    
-    try {
-      const response = await this.callAPI(model, settings, prompt);
-      return response.content;
-    } catch (error) {
-      console.error('脚本优化失败:', error);
-      throw error;
-    }
+    return this.executeRequest(
+      async () => {
+        const prompt = this.buildOptimizationPrompt(script, optimization);
+        const response = await this.callAPI(model, settings, prompt);
+        return response.content;
+      },
+      '优化脚本',
+      { loadingMessage: '正在优化脚本...' }
+    );
   }
 
   /**
@@ -144,13 +183,14 @@ ${script}
 
 请直接返回翻译后的内容，不要添加解释。`;
 
-    try {
-      const response = await this.callAPI(model, settings, prompt);
-      return response.content;
-    } catch (error) {
-      console.error('翻译失败:', error);
-      throw error;
-    }
+    return this.executeRequest(
+      async () => {
+        const response = await this.callAPI(model, settings, prompt);
+        return response.content;
+      },
+      '翻译脚本',
+      { loadingMessage: '正在翻译脚本...' }
+    );
   }
 
   /**
@@ -164,7 +204,7 @@ ${script}
     const provider = MODEL_PROVIDERS[model.provider];
     
     if (!provider) {
-      throw new Error(`不支持的提供商: ${model.provider}`);
+      throw new ServiceError(`不支持的提供商: ${model.provider}`, 'UNSUPPORTED_PROVIDER');
     }
 
     // 构建请求配置
@@ -187,17 +227,17 @@ ${script}
     // 根据提供商调用不同的 API
     switch (model.provider) {
       case 'openai':
-        return this.callOpenAI(settings.apiKey!, config);
+        return this.retryRequest(() => this.callOpenAI(settings.apiKey!, config));
       case 'anthropic':
-        return this.callAnthropic(settings.apiKey!, config);
+        return this.retryRequest(() => this.callAnthropic(settings.apiKey!, config));
       case 'google':
-        return this.callGoogle(settings.apiKey!, config);
+        return this.retryRequest(() => this.callGoogle(settings.apiKey!, config));
       case 'baidu':
-        return this.callBaidu(settings.apiKey!, settings.apiSecret!, config);
+        return this.retryRequest(() => this.callBaidu(settings.apiKey!, settings.apiSecret!, config));
       case 'alibaba':
-        return this.callAlibaba(settings.apiKey!, config);
+        return this.retryRequest(() => this.callAlibaba(settings.apiKey!, config));
       case 'zhipu':
-        return this.callZhipu(settings.apiKey!, config);
+        return this.retryRequest(() => this.callZhipu(settings.apiKey!, config));
       default:
         // 模拟调用
         return this.mockCall(config);
@@ -218,7 +258,11 @@ ${script}
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API 错误: ${response.status}`);
+      throw new ServiceError(
+        `OpenAI API 错误: ${response.status}`,
+        'API_ERROR',
+        response.status
+      );
     }
 
     const data = await response.json();
@@ -249,7 +293,11 @@ ${script}
     });
 
     if (!response.ok) {
-      throw new Error(`Anthropic API 错误: ${response.status}`);
+      throw new ServiceError(
+        `Anthropic API 错误: ${response.status}`,
+        'API_ERROR',
+        response.status
+      );
     }
 
     const data = await response.json();
@@ -283,7 +331,11 @@ ${script}
     );
 
     if (!response.ok) {
-      throw new Error(`Google API 错误: ${response.status}`);
+      throw new ServiceError(
+        `Google API 错误: ${response.status}`,
+        'API_ERROR',
+        response.status
+      );
     }
 
     const data = await response.json();
@@ -320,7 +372,11 @@ ${script}
     );
 
     if (!response.ok) {
-      throw new Error(`百度 API 错误: ${response.status}`);
+      throw new ServiceError(
+        `百度 API 错误: ${response.status}`,
+        'API_ERROR',
+        response.status
+      );
     }
 
     const data = await response.json();
@@ -344,7 +400,11 @@ ${script}
     });
 
     if (!response.ok) {
-      throw new Error(`阿里云 API 错误: ${response.status}`);
+      throw new ServiceError(
+        `阿里云 API 错误: ${response.status}`,
+        'API_ERROR',
+        response.status
+      );
     }
 
     const data = await response.json();
@@ -369,7 +429,11 @@ ${script}
     });
 
     if (!response.ok) {
-      throw new Error(`智谱 API 错误: ${response.status}`);
+      throw new ServiceError(
+        `智谱 API 错误: ${response.status}`,
+        'API_ERROR',
+        response.status
+      );
     }
 
     const data = await response.json();
@@ -384,7 +448,7 @@ ${script}
    * 模拟调用（用于测试）
    */
   private async mockCall(config: RequestConfig): Promise<AIResponse> {
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await this.delay(2000);
     
     return {
       content: `这是一个模拟生成的脚本内容。
@@ -444,7 +508,17 @@ ${script}
   /**
    * 构建脚本生成提示词
    */
-  private buildScriptPrompt(params: any): string {
+  private buildScriptPrompt(params: {
+    topic: string;
+    style: string;
+    tone: string;
+    length: string;
+    audience: string;
+    language: string;
+    keywords?: string[];
+    requirements?: string;
+    videoDuration?: number;
+  }): string {
     const styleMap: Record<string, string> = {
       professional: '专业正式',
       casual: '轻松随意',
@@ -491,7 +565,12 @@ ${params.videoDuration ? `视频时长：${Math.round(params.videoDuration / 60)
   /**
    * 构建视频分析提示词
    */
-  private buildAnalysisPrompt(videoInfo: any): string {
+  private buildAnalysisPrompt(videoInfo: {
+    duration: number;
+    width: number;
+    height: number;
+    format: string;
+  }): string {
     return `请分析以下视频的基本信息：
 
 时长：${Math.round(videoInfo.duration / 60)}分钟
@@ -531,7 +610,13 @@ ${script}
   /**
    * 解析脚本片段
    */
-  private parseScriptSegments(content: string): any[] {
+  private parseScriptSegments(content: string): Array<{
+    id: string;
+    startTime: number;
+    endTime: number;
+    content: string;
+    type: string;
+  }> {
     // 简单的段落分割
     const paragraphs = content.split('\n\n').filter(p => p.trim());
     
@@ -555,7 +640,14 @@ ${script}
   /**
    * 生成模拟场景
    */
-  private generateMockScenes(duration: number): any[] {
+  private generateMockScenes(duration: number): Array<{
+    id: string;
+    startTime: number;
+    endTime: number;
+    thumbnail: string;
+    description: string;
+    tags: string[];
+  }> {
     const scenes = [];
     const sceneCount = Math.min(Math.floor(duration / 30), 10);
     
@@ -576,7 +668,12 @@ ${script}
   /**
    * 生成模拟关键帧
    */
-  private generateMockKeyframes(duration: number): any[] {
+  private generateMockKeyframes(duration: number): Array<{
+    id: string;
+    timestamp: number;
+    thumbnail: string;
+    description: string;
+  }> {
     const keyframes = [];
     const count = Math.min(Math.floor(duration / 5), 20);
     
@@ -606,3 +703,6 @@ ${script}
 
 export const aiService = new AIService();
 export default aiService;
+
+// 导出类型
+export type { AIResponse, RequestConfig };

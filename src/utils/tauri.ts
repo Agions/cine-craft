@@ -2,7 +2,7 @@
  * Tauri工具函数
  * 提供与Tauri API相关的工具函数
  */
-import { fs } from '@tauri-apps/api/fs';
+import { readTextFile, writeTextFile, exists } from '@tauri-apps/api/fs';
 import { open } from '@tauri-apps/api/dialog';
 
 /**
@@ -37,9 +37,9 @@ export const selectFile = async (options: {
  * @param {string} path 文件路径
  * @returns {Promise<string>} 文件内容
  */
-export const readTextFile = async (path: string): Promise<string> => {
+export const readTextFileUtil = async (path: string): Promise<string> => {
   try {
-    return await fs.readTextFile(path);
+    return await readTextFile(path);
   } catch (error) {
     console.error('读取文件时出错:', error);
     throw error;
@@ -51,9 +51,9 @@ export const readTextFile = async (path: string): Promise<string> => {
  * @param {string} path 文件路径
  * @param {string} contents 文件内容
  */
-export const writeTextFile = async (path: string, contents: string): Promise<void> => {
+export const writeTextFileUtil = async (path: string, contents: string): Promise<void> => {
   try {
-    await fs.writeTextFile(path, contents);
+    await writeTextFile(path, contents);
   } catch (error) {
     console.error('写入文件时出错:', error);
     throw error;
@@ -67,9 +67,9 @@ export const writeTextFile = async (path: string, contents: string): Promise<voi
  */
 export const fileExists = async (path: string): Promise<boolean> => {
   try {
-    return await fs.exists(path);
+    return await exists(path);
   } catch (error) {
     console.error('检查文件是否存在时出错:', error);
     return false;
   }
-}; 
+};

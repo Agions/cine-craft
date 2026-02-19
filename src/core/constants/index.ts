@@ -45,40 +45,6 @@ export const LANGUAGE_OPTIONS = [
   { value: 'en', label: 'English' }
 ] as const;
 
-// 视频格式
-export const VIDEO_FORMATS = [
-  { value: 'mp4', label: 'MP4', ext: '.mp4' },
-  { value: 'mov', label: 'MOV', ext: '.mov' },
-  { value: 'webm', label: 'WebM', ext: '.webm' },
-  { value: 'avi', label: 'AVI', ext: '.avi' }
-] as const;
-
-// 导出质量
-export const EXPORT_QUALITIES = [
-  { value: 'low', label: '低质量', crf: 28 },
-  { value: 'medium', label: '中等质量', crf: 23 },
-  { value: 'high', label: '高质量', crf: 18 },
-  { value: 'ultra', label: '超高质量', crf: 15 }
-] as const;
-
-// 分辨率选项
-export const RESOLUTION_OPTIONS = [
-  { value: '720p', label: '720p HD', width: 1280, height: 720 },
-  { value: '1080p', label: '1080p Full HD', width: 1920, height: 1080 },
-  { value: '2k', label: '2K QHD', width: 2560, height: 1440 },
-  { value: '4k', label: '4K UHD', width: 3840, height: 2160 }
-] as const;
-
-// 转场效果
-export const TRANSITION_EFFECTS = [
-  { value: 'fade', label: '淡入淡出', duration: 0.5 },
-  { value: 'dissolve', label: '交叉溶解', duration: 0.5 },
-  { value: 'wipe', label: '擦除效果', duration: 0.5 },
-  { value: 'slide', label: '滑动效果', duration: 0.5 },
-  { value: 'zoom', label: '缩放效果', duration: 0.5 },
-  { value: 'none', label: '无效果', duration: 0 }
-] as const;
-
 // 存储键名
 export const STORAGE_KEYS = {
   PROJECTS: 'reelforge_projects',
@@ -101,31 +67,6 @@ export const ROUTES = {
   VIDEO_STUDIO: '/video-studio'
 } as const;
 
-// 事件名称
-export const EVENTS = {
-  PROJECT_CREATED: 'project:created',
-  PROJECT_UPDATED: 'project:updated',
-  PROJECT_DELETED: 'project:deleted',
-  SCRIPT_GENERATED: 'script:generated',
-  VIDEO_UPLOADED: 'video:uploaded',
-  EXPORT_STARTED: 'export:started',
-  EXPORT_COMPLETED: 'export:completed',
-  EXPORT_FAILED: 'export:failed'
-} as const;
-
-// 错误码
-export const ERROR_CODES = {
-  UNKNOWN: 'E0000',
-  NETWORK_ERROR: 'E0001',
-  API_ERROR: 'E0002',
-  VALIDATION_ERROR: 'E0003',
-  NOT_FOUND: 'E0004',
-  UNAUTHORIZED: 'E0005',
-  FILE_TOO_LARGE: 'E0006',
-  UNSUPPORTED_FORMAT: 'E0007',
-  PROCESSING_ERROR: 'E0008'
-} as const;
-
 // 默认配置
 export const DEFAULTS = {
   AUTO_SAVE_INTERVAL: 30, // 秒
@@ -137,51 +78,6 @@ export const DEFAULTS = {
   DEFAULT_LANGUAGE: 'zh',
   DEFAULT_SCRIPT_LENGTH: 'medium',
   DEFAULT_STYLE: 'professional'
-} as const;
-
-// 文件类型映射
-export const FILE_TYPE_MAP: Record<string, string> = {
-  mp4: 'video',
-  mov: 'video',
-  avi: 'video',
-  mkv: 'video',
-  webm: 'video',
-  flv: 'video',
-  wmv: 'video',
-  mp3: 'audio',
-  wav: 'audio',
-  flac: 'audio',
-  aac: 'audio',
-  jpg: 'image',
-  jpeg: 'image',
-  png: 'image',
-  gif: 'image',
-  webp: 'image',
-  svg: 'image',
-  pdf: 'document',
-  doc: 'document',
-  docx: 'document',
-  txt: 'text',
-  json: 'code',
-  js: 'code',
-  ts: 'code',
-  srt: 'subtitle',
-  vtt: 'subtitle',
-  ass: 'subtitle'
-} as const;
-
-// 动画配置
-export const ANIMATION_CONFIG = {
-  duration: {
-    fast: 0.2,
-    normal: 0.3,
-    slow: 0.5
-  },
-  easing: {
-    default: [0.4, 0, 0.2, 1],
-    bounce: [0.68, -0.55, 0.265, 1.55],
-    smooth: [0.25, 0.1, 0.25, 1]
-  }
 } as const;
 
 // LLM 模型配置（2026年最新）

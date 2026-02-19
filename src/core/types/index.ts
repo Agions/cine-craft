@@ -19,6 +19,7 @@ export interface AIModel {
   isPro?: boolean;
   isAvailable?: boolean;
   apiConfigured?: boolean;
+  recommended?: boolean;
   pricing?: {
     input: number;
     output: number;

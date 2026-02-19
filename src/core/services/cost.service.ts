@@ -331,7 +331,7 @@ class CostService {
     const suggestions = this.getOptimizationSuggestions();
 
     return `
-# ReelForge 成本报告
+# ClipFlow 成本报告
 
 生成时间: ${new Date().toLocaleString('zh-CN')}
 
@@ -360,7 +360,7 @@ ${Object.entries(stats.byModel).map(([model, cost]) => `- ${model}: $${cost.toFi
 ${suggestions.join('\n\n')}
 
 ---
-*报告由 ReelForge 成本追踪服务生成*
+*报告由 ClipFlow 成本追踪服务生成*
     `.trim();
   }
 
