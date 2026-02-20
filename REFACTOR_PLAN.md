@@ -1,4 +1,4 @@
-# CineCraft 项目重构计划
+# ClipFlow 项目重构计划
 
 ## 当前状态分析
 

@@ -1,7 +1,7 @@
-# CineCraft 协同开发计划
+# ClipFlow 协同开发计划
 
 ## 项目概述
-CineCraft (电影工坊) - AI驱动的专业视频内容创作平台
+ClipFlow (电影工坊) - AI驱动的专业视频内容创作平台
 技术栈: React 18 + TypeScript + Vite + Tauri + Ant Design 5 + Zustand
 
 ## 开发任务分解
