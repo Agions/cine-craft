@@ -37,11 +37,11 @@ import {
 import { useWorkflow, useModel, useAIClip } from '@/core/hooks';
 import { scriptTemplateService } from '@/core/services';
 import VideoUploader from '@/components/VideoUploader';
-import { ModelSelector } from '@/components/ModelSelector';
+import ModelSelector from '@/components/ModelSelector';
 import ScriptEditor from '@/components/ScriptEditor';
 import VideoTimeline from '@/components/VideoTimeline';
 import ExportPanel from '@/components/ExportPanel';
-import { AIClipAssistant } from '@/components/AIClipAssistant';
+import AIClipAssistant from '@/components/AIClipAssistant';
 import type { WorkflowStep, ScriptTemplate, AIModel } from '@/core/types';
 
 import styles from './index.module.less';
