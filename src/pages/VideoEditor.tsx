@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Layout, Card, Button, Dropdown, Space, Typography, Tabs,
-  Row, Col, Progress, Tooltip, message, Empty, Tag, Skeleton
+  Layout, Card, Button, Dropdown, Typography, Tabs,
+  Row, Col, message
 } from 'antd';
 import {
-  PlayCircleOutlined, PauseCircleOutlined, ScissorOutlined,
+  PlayCircleOutlined, PauseCircleOutlined,
   SaveOutlined, UndoOutlined, RedoOutlined, DownloadOutlined,
-  FileImageOutlined, SettingOutlined, UploadOutlined, CopyOutlined,
-  DeleteOutlined, CheckCircleOutlined, ShareAltOutlined, PlusOutlined,
-  FullscreenOutlined, SyncOutlined, ExpandOutlined, LockOutlined,
-  RobotOutlined, ThunderboltOutlined
+  FileImageOutlined, SettingOutlined, UploadOutlined,
+  DeleteOutlined, PlusOutlined,
+  FullscreenOutlined,
+  RobotOutlined
 } from '@ant-design/icons';
 import { invoke } from '@tauri-apps/api/tauri';
 import { open } from '@tauri-apps/api/dialog';
@@ -18,10 +18,9 @@ import { open } from '@tauri-apps/api/dialog';
 import styles from './VideoEditor.module.less';
 
 // 导入组件和服务
-import { VideoSegment, extractKeyFrames, generateThumbnail, analyzeVideo } from '@/services/videoService';
+import { VideoSegment, extractKeyFrames, analyzeVideo } from '@/services/videoService';
 import { saveProjectFile } from '@/services/projectService';
 import { AIClipAssistant } from '@/components/AIClipAssistant';
-import { useAIClip } from '@/core/hooks';
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -50,21 +49,8 @@ const VideoEditor: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const timelineRef = useRef<HTMLDivElement>(null);
-  
-  // 模拟项目数据
-  const projectData = {
-    id: projectId || 'new',
-    name: '未命名项目',
-    videoPath: '',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    segmentCount: segments.length,
-    duration: 0,
-    width: 1920,
-    height: 1080,
-    fps: 30,
-  };
   
   // 加载视频文件
   const handleLoadVideo = async () => {

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Project, AIModelType, AIModelConfig, AI_MODEL_INFO } from '@/types';
+import { Project, AIModelType, AI_MODEL_INFO } from '@/types';
 
 // 示例数据
 const sampleProjects: Project[] = [

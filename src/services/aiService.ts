@@ -1,9 +1,7 @@
-import { invoke } from '@tauri-apps/api/tauri';
 import axios from 'axios';
 import { message } from 'antd';
 import { v4 as uuidv4 } from 'uuid';
 import { getApiKey } from './tauriService';
-import { formatDuration } from '@/utils/format';
 import { AIModelType, AIModelConfig } from '@/types';
 import { VideoMetadata } from './videoService';
 
@@ -441,7 +439,7 @@ export const aiService = {
 
     // 添加关键时刻
     if (keyMoments && keyMoments.length > 0) {
-      keyMoments.forEach((moment: any, index: number) => {
+      keyMoments.forEach((moment: any) => {
         prompt += `[${formatTimestamp(moment.timestamp)}] ${moment.description}\n`;
       });
     }
@@ -449,7 +447,7 @@ export const aiService = {
     // 添加情感变化
     if (emotions && emotions.length > 0) {
       prompt += `\n情感变化:\n`;
-      emotions.forEach((emotion: any, index: number) => {
+      emotions.forEach((emotion: any) => {
         prompt += `[${formatTimestamp(emotion.timestamp)}] ${emotion.type} (强度: ${emotion.intensity.toFixed(1)})\n`;
       });
     }

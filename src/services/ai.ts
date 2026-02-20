@@ -122,7 +122,8 @@ export const generateScript = async (
 };
 
 // 解析AI生成的脚本文本为结构化数据
-const parseScriptContent = (content: string, videoId: string): ScriptSegment[] => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const parseScriptContent = (content: string, _videoId: string): ScriptSegment[] => {
   const segments: ScriptSegment[] = [];
   const lines = content.split('\n').filter(line => line.trim().length > 0);
   

@@ -3,12 +3,11 @@
  * 集成视觉识别、脚本生成、视频混剪的完整流程
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   Steps,
   Card,
   Button,
-  Upload,
   Progress,
   Alert,
   Space,
@@ -18,11 +17,9 @@ import {
   Select,
   Radio,
   message,
-  Tabs,
   Switch
 } from 'antd';
 import {
-  UploadOutlined,
   EyeOutlined,
   FileTextOutlined,
   EditOutlined,
@@ -40,9 +37,9 @@ import { useWorkflow, useModel, useAIClip } from '@/core/hooks';
 import { scriptTemplateService } from '@/core/services';
 import { VideoUploader } from '@/components/VideoUploader';
 import { ModelSelector } from '@/components/ModelSelector';
-import { ScriptEditor } from '@/components/ScriptEditor';
-import { VideoTimeline } from '@/components/VideoTimeline';
-import { ExportPanel } from '@/components/ExportPanel';
+import ScriptEditor from '@/components/ScriptEditor';
+import VideoTimeline from '@/components/VideoTimeline';
+import ExportPanel from '@/components/ExportPanel';
 import { AIClipAssistant } from '@/components/AIClipAssistant';
 import type { WorkflowStep, ScriptTemplate, AIModel } from '@/core/types';
 
@@ -160,12 +157,13 @@ export const WorkflowPage: React.FC = () => {
     }
   });
 
-  // AI 剪辑 Hook
+  // AI 剪辑 Hook - 保留用于未来扩展
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const {
-    isAnalyzing: isClipAnalyzing,
-    result: clipResult,
-    analyze: analyzeClip,
-    smartClip
+    isAnalyzing: _isClipAnalyzing,
+    result: _clipResult,
+    analyze: _analyzeClip,
+    smartClip: _smartClip
   } = useAIClip();
 
   // 本地状态
@@ -196,6 +194,7 @@ export const WorkflowPage: React.FC = () => {
 
   // 模板列表
   const templates = scriptTemplateService.getAllTemplates();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const categories = scriptTemplateService.getCategories();
 
   // 获取当前步骤索引

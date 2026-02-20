@@ -300,3 +300,91 @@ export interface TaskStatus {
   updatedAt: string;
   completedAt?: string;
 }
+
+// 工作流步骤
+export type WorkflowStep =
+  | 'upload'
+  | 'analyze'
+  | 'template-select'
+  | 'script-generate'
+  | 'script-dedup'
+  | 'script-edit'
+  | 'ai-clip'
+  | 'timeline-edit'
+  | 'preview'
+  | 'export';
+
+// 工作流数据
+export interface WorkflowData {
+  videoInfo?: VideoInfo;
+  videoAnalysis?: VideoAnalysis;
+  selectedTemplate?: ScriptTemplate;
+  generatedScript?: ScriptData;
+  dedupedScript?: ScriptData;
+  uniqueScript?: ScriptData;
+  editedScript?: ScriptData;
+  timeline?: any;
+  originalityReport?: {
+    score: number;
+    duplicates: Array<{
+      id: string;
+      type: 'exact' | 'similar' | 'template';
+      target: { content: string };
+      suggestion: string;
+    }>;
+    suggestions: string[];
+  };
+  uniquenessReport?: {
+    check: {
+      isUnique: boolean;
+      similarity: number;
+      suggestions: string[];
+    };
+    history: {
+      totalScripts: number;
+      recentScripts: number;
+    };
+  };
+}
+
+// 工作流状态
+export interface WorkflowState {
+  step: WorkflowStep;
+  status: 'idle' | 'running' | 'paused' | 'completed' | 'error';
+  progress: number;
+  data: WorkflowData;
+  error?: string;
+}
+
+// 工作流配置
+export interface WorkflowConfig {
+  autoAnalyze?: boolean;
+  autoGenerateScript?: boolean;
+  preferredTemplate?: string;
+  model?: AIModel;
+  scriptParams?: {
+    style: string;
+    tone: string;
+    length: 'short' | 'medium' | 'long';
+    targetAudience: string;
+    language: string;
+  };
+  aiClipConfig?: {
+    enabled: boolean;
+    autoClip?: boolean;
+    detectSceneChange?: boolean;
+    detectSilence?: boolean;
+    removeSilence?: boolean;
+    targetDuration?: number;
+    pacingStyle?: 'fast' | 'normal' | 'slow';
+  };
+}
+
+// 工作流回调
+export interface WorkflowCallbacks {
+  onStepChange?: (step: WorkflowStep, prevStep?: WorkflowStep) => void;
+  onProgress?: (progress: number) => void;
+  onStatusChange?: (status: WorkflowState['status']) => void;
+  onError?: (error: string) => void;
+  onComplete?: (result: any) => void;
+}

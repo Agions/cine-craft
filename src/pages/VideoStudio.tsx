@@ -1,18 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
   Layout, Card, Breadcrumb, Tabs, Spin, Empty, Button, 
-  Row, Col, Statistic, Typography, Space, Divider, message, 
-  Descriptions, Tag, Tooltip
+  Row, Col, Typography, Space, message, 
+  Tag, Tooltip
 } from 'antd';
 import { 
   HomeOutlined, PlayCircleOutlined, FileTextOutlined, 
   SettingOutlined, VideoCameraOutlined, ClockCircleOutlined,
-  FullscreenOutlined, CodeOutlined, SaveOutlined, 
+  FullscreenOutlined, SaveOutlined, 
   ExportOutlined, LoadingOutlined, InfoCircleOutlined
 } from '@ant-design/icons';
 import { invoke } from '@tauri-apps/api/tauri';
-import { open } from '@tauri-apps/api/dialog';
 import { formatDistanceToNow } from 'date-fns';
 import { zh } from 'date-fns/locale';
 
@@ -22,7 +21,7 @@ import styles from './VideoStudio.module.less';
 // 导入组件和服务
 import VideoPlayer from '@/components/VideoPlayer';
 import ScriptEditor from '@/components/ScriptEditor';
-import VideoProcessController from '@/components/VideoProcessController';
+import VideoProcessingController from '@/components/VideoProcessingController';
 import { loadProjectFromFile } from '@/services/tauriService';
 import type { Project, Script } from '@/types';
 import type { VideoMetadata } from '@/services/videoService';
@@ -77,8 +76,6 @@ const VideoStudio: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('edit');
   const [processingVideo, setProcessingVideo] = useState<boolean>(false);
   const [script, setScript] = useState<Script | null>(null);
-  
-  const videoRef = useRef<HTMLVideoElement>(null);
   
   // 加载项目数据
   useEffect(() => {
@@ -225,9 +222,7 @@ const VideoStudio: React.FC = () => {
                   type="text" 
                   icon={<FullscreenOutlined />} 
                   onClick={() => {
-                    if (videoRef.current) {
-                      videoRef.current.requestFullscreen();
-                    }
+                    // 全屏功能待实现
                   }}
                 />
               </Space>
@@ -237,7 +232,6 @@ const VideoStudio: React.FC = () => {
               <VideoPlayer 
                 src={videoSrc} 
                 onTimeUpdate={handleTimeUpdate}
-                ref={videoRef}
               />
             ) : (
               <div className={styles.noVideo}>
@@ -282,10 +276,13 @@ const VideoStudio: React.FC = () => {
             >
               <Row gutter={[24, 24]}>
                 <Col span={16}>
-                  <VideoProcessController 
-                    project={project!} 
-                    onProcessingStart={() => setProcessingVideo(true)}
-                    onProcessingComplete={handleProcessingComplete}
+                  <VideoProcessingController
+                    videoPath={project?.videoPath || ''}
+                    segments={[]}
+                    onProcessingComplete={(outputPath) => {
+                      setProcessingVideo(false);
+                      message.success('视频处理完成: ' + outputPath);
+                    }}
                   />
                 </Col>
                 <Col span={8}>

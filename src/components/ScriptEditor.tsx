@@ -1,47 +1,65 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  Button, 
-  Table, 
-  Space, 
-  Form, 
-  Input, 
-  Select, 
-  Modal, 
-  Tooltip, 
-  Dropdown, 
-  Menu, 
-  message 
+import {
+  Card,
+  Button,
+  Table,
+  Space,
+  Form,
+  Input,
+  Select,
+  Modal,
+  Tooltip,
+  Dropdown,
+  Menu,
+  message,
+  Typography,
+  Input as AntInput
 } from 'antd';
-import { 
-  EditOutlined, 
-  DeleteOutlined, 
-  PlayCircleOutlined, 
-  PlusOutlined, 
-  SaveOutlined, 
-  ExportOutlined, 
-  DownOutlined 
+import {
+  EditOutlined,
+  DeleteOutlined,
+  PlayCircleOutlined,
+  PlusOutlined,
+  SaveOutlined,
+  ExportOutlined,
+  DownOutlined
 } from '@ant-design/icons';
 import { VideoSegment, formatDuration, previewSegment } from '@/services/videoService';
 import { convertFileSrc } from '@tauri-apps/api/tauri';
+import type { ScriptData, Scene } from '@/core/types';
 import styles from './ScriptEditor.module.less';
 
-interface ScriptEditorProps {
+const { TextArea } = AntInput;
+const { Title, Text } = Typography;
+
+// 原始 Props 接口
+interface ScriptEditorOriginalProps {
   videoPath: string;
   initialSegments?: VideoSegment[];
   onSave: (segments: VideoSegment[]) => void;
   onExport?: (format: string) => void;
 }
 
+// Workflow 页面使用的 Props 接口
+interface ScriptEditorWorkflowProps {
+  script?: ScriptData;
+  scenes?: Scene[];
+  onSave: (script: ScriptData) => void;
+  metadata?: any;
+  onScriptUpdate?: (script: ScriptData) => void;
+}
+
+type ScriptEditorProps = ScriptEditorOriginalProps | ScriptEditorWorkflowProps;
+
+// 类型守卫函数
+function isWorkflowProps(props: ScriptEditorProps): props is ScriptEditorWorkflowProps {
+  return 'script' in props;
+}
+
 /**
  * 脚本编辑器组件
  */
-const ScriptEditor: React.FC<ScriptEditorProps> = ({
-  videoPath,
-  initialSegments = [],
-  onSave,
-  onExport
-}) => {
+const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
   const [segments, setSegments] = useState<VideoSegment[]>(initialSegments);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editForm] = Form.useForm();
