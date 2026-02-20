@@ -237,7 +237,11 @@ export const WorkflowPage: React.FC = () => {
         return (
           <Card title="上传视频" className={styles.stepCard}>
             <VideoUploader
-              onUpload={(video) => setSelectedFile(video as any)}
+              onUpload={(video: import('@/core/types').VideoInfo) => {
+                // VideoInfo 转换为 File 类型（这里使用视频路径作为 File 的模拟）
+                // 实际使用时可能需要调整
+                setSelectedFile(video as unknown as File);
+              }}
               accept="video/*"
               maxSize={1024 * 1024 * 1024} // 1GB
             />

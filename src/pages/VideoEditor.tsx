@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Layout, Card, Button, Dropdown, Typography, Tabs,
-  Row, Col, message
+  Row, Col, message, Tooltip, Empty, Space, Tag, Progress
 } from 'antd';
 import {
   PlayCircleOutlined, PauseCircleOutlined,
@@ -213,7 +213,7 @@ const VideoEditor: React.FC = () => {
       
       // 保存逻辑
       const projectToSave = {
-        ...projectData,
+        id: projectId || 'new',
         segments,
         updatedAt: new Date().toISOString()
       };

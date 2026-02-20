@@ -41,6 +41,9 @@ export interface Project {
   name: string;
   description: string;
   videoUrl: string;
+  videoPath?: string;
+  outputDir?: string;
+  metadata?: any;
   analysis?: VideoAnalysis;
   scripts: Script[];
   createdAt: string;
