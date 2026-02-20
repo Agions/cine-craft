@@ -3,7 +3,7 @@
  * 集成视觉识别、脚本生成、视频混剪的完整流程
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Steps,
   Card,
@@ -31,11 +31,12 @@ import {
   ScissorOutlined,
   RobotOutlined,
   ThunderboltOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  UploadOutlined
 } from '@ant-design/icons';
 import { useWorkflow, useModel, useAIClip } from '@/core/hooks';
 import { scriptTemplateService } from '@/core/services';
-import { VideoUploader } from '@/components/VideoUploader';
+import VideoUploader from '@/components/VideoUploader';
 import { ModelSelector } from '@/components/ModelSelector';
 import ScriptEditor from '@/components/ScriptEditor';
 import VideoTimeline from '@/components/VideoTimeline';

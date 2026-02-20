@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
   Layout, Card, Breadcrumb, Tabs, Spin, Empty, Button, 
   Row, Col, Typography, Space, message, 
-  Tag, Tooltip
+  Tag, Tooltip, Descriptions, Divider
 } from 'antd';
 import { 
   HomeOutlined, PlayCircleOutlined, FileTextOutlined, 

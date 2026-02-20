@@ -13,7 +13,9 @@ import {
   Menu,
   message,
   Typography,
-  Input as AntInput
+  Tabs,
+  List,
+  Tag
 } from 'antd';
 import {
   EditOutlined,
@@ -22,15 +24,18 @@ import {
   PlusOutlined,
   SaveOutlined,
   ExportOutlined,
-  DownOutlined
+  DownOutlined,
+  FileTextOutlined,
+  ClockCircleOutlined
 } from '@ant-design/icons';
 import { VideoSegment, formatDuration, previewSegment } from '@/services/videoService';
 import { convertFileSrc } from '@tauri-apps/api/tauri';
-import type { ScriptData, Scene } from '@/core/types';
+import type { ScriptData, Scene, ScriptSegment } from '@/core/types';
 import styles from './ScriptEditor.module.less';
 
-const { TextArea } = AntInput;
-const { Title, Text } = Typography;
+const { TextArea } = Input;
+const { Title, Text, Paragraph } = Typography;
+const { TabPane } = Tabs;
 
 // 原始 Props 接口
 interface ScriptEditorOriginalProps {
@@ -58,9 +63,23 @@ function isWorkflowProps(props: ScriptEditorProps): props is ScriptEditorWorkflo
 
 /**
  * 脚本编辑器组件
+ * 支持两种模式：
+ * 1. 原始模式：基于 videoPath 和 segments
+ * 2. Workflow 模式：基于 script 对象
  */
 const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
-  const [segments, setSegments] = useState<VideoSegment[]>(initialSegments);
+  // 判断当前模式
+  const isWorkflowMode = isWorkflowProps(props);
+
+  // Workflow 模式状态
+  const [activeTab, setActiveTab] = useState('content');
+  const [editedContent, setEditedContent] = useState('');
+  const [editedTitle, setEditedTitle] = useState('');
+
+  // 原始模式状态
+  const [segments, setSegments] = useState<VideoSegment[]>(
+    !isWorkflowMode ? (props.initialSegments || []) : []
+  );
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editForm] = Form.useForm();
   const [previewVisible, setPreviewVisible] = useState(false);
@@ -69,45 +88,76 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
   const [aiModalVisible, setAiModalVisible] = useState(false);
   const [exportMenuVisible, setExportMenuVisible] = useState(false);
   const [totalDuration, setTotalDuration] = useState(0);
-  
-  // 当段落变化时重新计算总时长
+
+  // 初始化 Workflow 模式数据
   useEffect(() => {
-    const duration = segments.reduce((sum, segment) => sum + (segment.end - segment.start), 0);
-    setTotalDuration(duration);
-  }, [segments]);
+    if (isWorkflowMode && props.script) {
+      setEditedContent(props.script.content || '');
+      setEditedTitle(props.script.title || '');
+    }
+  }, [isWorkflowMode, isWorkflowMode ? (props as ScriptEditorWorkflowProps).script : null]);
+
+  // 当段落变化时重新计算总时长（原始模式）
+  useEffect(() => {
+    if (!isWorkflowMode) {
+      const duration = segments.reduce((sum, segment) => sum + (segment.end - segment.start), 0);
+      setTotalDuration(duration);
+    }
+  }, [segments, isWorkflowMode]);
+
+  // ============ Workflow 模式处理方法 ============
+
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEditedContent(e.target.value);
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditedTitle(e.target.value);
+  };
+
+  const handleWorkflowSave = () => {
+    if (isWorkflowMode) {
+      const updatedScript: ScriptData = {
+        ...props.script!,
+        title: editedTitle,
+        content: editedContent,
+        updatedAt: new Date().toISOString()
+      };
+      props.onSave(updatedScript);
+      props.onScriptUpdate?.(updatedScript);
+      message.success('脚本已保存');
+    }
+  };
+
+  // ============ 原始模式处理方法 ============
 
   // 添加新片段
   const handleAddSegment = () => {
-    // 计算新片段的开始时间（从上一个片段的结束时间开始）
     const lastSegment = segments.length > 0 ? segments[segments.length - 1] : null;
     const startTime = lastSegment ? lastSegment.end : 0;
-    const endTime = startTime + 30; // 默认片段长度30秒
-    
-    // 初始化表单值
+    const endTime = startTime + 30;
+
     editForm.setFieldsValue({
       start: startTime,
       end: endTime,
       type: 'narration',
       content: ''
     });
-    
-    // 设置编辑索引为新片段
+
     setEditingIndex(segments.length);
   };
 
   // 编辑片段
   const handleEditSegment = (index: number) => {
     const segment = segments[index];
-    
-    // 初始化表单值
+
     editForm.setFieldsValue({
       start: segment.start,
       end: segment.end,
       type: segment.type || 'narration',
       content: segment.content || ''
     });
-    
-    // 设置编辑索引
+
     setEditingIndex(index);
   };
 
@@ -116,8 +166,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
     editForm.validateFields().then(values => {
       const start = parseFloat(values.start);
       const end = parseFloat(values.end);
-      
-      // 创建新的片段数组，更新编辑的片段
+
       const newSegments = [...segments];
       const segment: VideoSegment = {
         start,
@@ -125,18 +174,15 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
         type: values.type,
         content: values.content
       };
-      
+
       if (editingIndex !== null) {
         if (editingIndex < segments.length) {
-          // 更新现有片段
           newSegments[editingIndex] = segment;
         } else {
-          // 添加新片段
           newSegments.push(segment);
         }
       }
-      
-      // 更新状态并关闭编辑
+
       setSegments(newSegments);
       setEditingIndex(null);
       editForm.resetFields();
@@ -164,14 +210,13 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
 
   // 预览片段
   const handlePreviewSegment = async (index: number) => {
+    if (isWorkflowMode) return;
+
     try {
       setPreviewLoading(true);
       const segment = segments[index];
-      
-      // 使用服务函数生成预览
+      const videoPath = (props as ScriptEditorOriginalProps).videoPath;
       const previewPath = await previewSegment(videoPath, segment);
-      
-      // 设置预览源并显示预览
       setPreviewSrc(convertFileSrc(previewPath));
       setPreviewVisible(true);
     } catch (error) {
@@ -184,6 +229,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
 
   // 导出脚本
   const handleExport = () => {
+    if (isWorkflowMode) return;
     setExportMenuVisible(true);
   };
 
@@ -196,14 +242,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
   const handleAIImprove = async () => {
     try {
       message.info('正在使用 AI 优化脚本...');
-      
-      // 这里应该实现调用 AI API 优化脚本的功能
-      // 当前是模拟实现
-      
-      // 关闭模态框
       setAiModalVisible(false);
-      
-      // 模拟优化完成
       setTimeout(() => {
         message.success('脚本优化完成');
       }, 2000);
@@ -213,60 +252,12 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
     }
   };
 
-  // 解析脚本文本为段落
-  const parseScriptText = (text: string): VideoSegment[] => {
-    try {
-      const lines = text.split('\n').filter(line => line.trim().length > 0);
-      const resultSegments: VideoSegment[] = [];
-      
-      let currentSegment: VideoSegment | null = null;
-      
-      for (const line of lines) {
-        // 尝试匹配时间轴格式 [00:00 - 00:00] 文本内容
-        const timeMatch = line.match(/\[(\d{1,2}:\d{2}(?::\d{2})?) - (\d{1,2}:\d{2}(?::\d{2})?)\]/);
-        
-        if (timeMatch) {
-          // 解析时间
-          const startTime = parseTimeString(timeMatch[1]);
-          const endTime = parseTimeString(timeMatch[2]);
-          
-          // 提取内容（时间轴后面的文本）
-          const content = line.substring(timeMatch[0].length).trim();
-          
-          currentSegment = {
-            start: startTime,
-            end: endTime,
-            type: 'narration',
-            content
-          };
-          
-          resultSegments.push(currentSegment);
-        } else if (currentSegment) {
-          // 如果没有匹配到时间轴，但有当前片段，将这行添加到当前片段的内容中
-          currentSegment.content += '\n' + line.trim();
-        }
-      }
-      
-      return resultSegments;
-    } catch (error) {
-      console.error('解析脚本失败:', error);
-      return [];
+  // 保存脚本（原始模式）
+  const handleOriginalSave = () => {
+    if (!isWorkflowMode) {
+      props.onSave(segments);
+      message.success('脚本已保存');
     }
-  };
-
-  // 解析时间字符串为秒数
-  const parseTimeString = (timeString: string): number => {
-    const parts = timeString.split(':').map(Number);
-    
-    if (parts.length === 3) {
-      // 格式: HH:MM:SS
-      return parts[0] * 3600 + parts[1] * 60 + parts[2];
-    } else if (parts.length === 2) {
-      // 格式: MM:SS
-      return parts[0] * 60 + parts[1];
-    }
-    
-    return 0;
   };
 
   // 表格列定义
@@ -297,9 +288,9 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
       width: 100,
       render: (type: string) => (
         <span>
-          {type === 'narration' ? '旁白' : 
-           type === 'dialogue' ? '对白' : 
-           type === 'action' ? '动作' : 
+          {type === 'narration' ? '旁白' :
+           type === 'dialogue' ? '对白' :
+           type === 'action' ? '动作' :
            type === 'transition' ? '转场' : type}
         </span>
       )
@@ -321,24 +312,24 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
       render: (_: any, record: VideoSegment, index: number) => (
         <Space size="small">
           <Tooltip title="编辑">
-            <Button 
-              type="text" 
-              icon={<EditOutlined />} 
+            <Button
+              type="text"
+              icon={<EditOutlined />}
               onClick={() => handleEditSegment(index)}
             />
           </Tooltip>
           <Tooltip title="预览">
-            <Button 
-              type="text" 
-              icon={<PlayCircleOutlined />} 
+            <Button
+              type="text"
+              icon={<PlayCircleOutlined />}
               onClick={() => handlePreviewSegment(index)}
             />
           </Tooltip>
           <Tooltip title="删除">
-            <Button 
-              type="text" 
+            <Button
+              type="text"
               danger
-              icon={<DeleteOutlined />} 
+              icon={<DeleteOutlined />}
               onClick={() => handleDeleteSegment(index)}
             />
           </Tooltip>
@@ -347,24 +338,148 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
     }
   ];
 
+  // ============ 渲染 ============
+
+  // Workflow 模式渲染
+  if (isWorkflowMode) {
+    const { script, scenes } = props as ScriptEditorWorkflowProps;
+
+    if (!script) {
+      return (
+        <Card className={styles.scriptEditor}>
+          <div className={styles.emptyState}>
+            <FileTextOutlined style={{ fontSize: 48, color: '#d9d9d9' }} />
+            <Text type="secondary">暂无脚本数据</Text>
+          </div>
+        </Card>
+      );
+    }
+
+    return (
+      <div className={styles.scriptEditor}>
+        <Card
+          title="脚本编辑"
+          className={styles.editorCard}
+          extra={
+            <Space>
+              <Button icon={<EditOutlined />} onClick={handleOpenAIModal}>
+                AI优化
+              </Button>
+              <Button type="primary" icon={<SaveOutlined />} onClick={handleWorkflowSave}>
+                保存
+              </Button>
+            </Space>
+          }
+        >
+          <Tabs activeKey={activeTab} onChange={setActiveTab}>
+            <TabPane tab="脚本内容" key="content">
+              <div className={styles.workflowEditor}>
+                <div className={styles.titleInput}>
+                  <Text type="secondary">标题</Text>
+                  <Input
+                    value={editedTitle}
+                    onChange={handleTitleChange}
+                    placeholder="输入脚本标题"
+                    size="large"
+                  />
+                </div>
+                <div className={styles.contentInput}>
+                  <Text type="secondary">内容</Text>
+                  <TextArea
+                    value={editedContent}
+                    onChange={handleContentChange}
+                    placeholder="输入脚本内容..."
+                    rows={15}
+                    className={styles.scriptTextArea}
+                  />
+                </div>
+              </div>
+            </TabPane>
+
+            <TabPane tab="片段列表" key="segments">
+              <List
+                dataSource={script.segments || []}
+                renderItem={(segment: ScriptSegment, index) => (
+                  <List.Item
+                    actions={[
+                      <Button key="edit" type="text" icon={<EditOutlined />} />,
+                      <Button key="delete" type="text" danger icon={<DeleteOutlined />} />
+                    ]}
+                  >
+                    <List.Item.Meta
+                      title={
+                        <Space>
+                          <Tag color="blue">{segment.type}</Tag>
+                          <Text>
+                            {formatDuration(segment.startTime)} - {formatDuration(segment.endTime)}
+                          </Text>
+                        </Space>
+                      }
+                      description={
+                        <Paragraph ellipsis={{ rows: 2 }}>
+                          {segment.content}
+                        </Paragraph>
+                      }
+                    />
+                  </List.Item>
+                )}
+              />
+            </TabPane>
+
+            {scenes && scenes.length > 0 && (
+              <TabPane tab={`场景 (${scenes.length})`} key="scenes">
+                <List
+                  dataSource={scenes}
+                  renderItem={(scene: Scene) => (
+                    <List.Item>
+                      <List.Item.Meta
+                        title={
+                          <Space>
+                            <ClockCircleOutlined />
+                            <Text>{formatDuration(scene.startTime)} - {formatDuration(scene.endTime)}</Text>
+                            {scene.tags?.map(tag => (
+                              <Tag key={tag} size="small">{tag}</Tag>
+                            ))}
+                          </Space>
+                        }
+                        description={scene.description}
+                      />
+                    </List.Item>
+                  )}
+                />
+              </TabPane>
+            )}
+          </Tabs>
+        </Card>
+
+        {/* AI 优化模态框 */}
+        <Modal
+          title="AI 优化脚本"
+          open={aiModalVisible}
+          onCancel={() => setAiModalVisible(false)}
+          onOk={handleAIImprove}
+        >
+          <p>使用 AI 优化脚本将会根据视频内容和当前脚本，生成更加专业的表达和结构。</p>
+          <p>点击确定开始优化。</p>
+        </Modal>
+      </div>
+    );
+  }
+
+  // 原始模式渲染
+  const { videoPath, onExport } = props as ScriptEditorOriginalProps;
+
   return (
     <div className={styles.scriptEditor}>
-      <Card 
+      <Card
         title="脚本编辑"
         className={styles.editorCard}
         extra={
           <Space>
-            <Button 
-              icon={<EditOutlined />} 
-              onClick={handleOpenAIModal}
-            >
+            <Button icon={<EditOutlined />} onClick={handleOpenAIModal}>
               AI优化
             </Button>
-            <Button 
-              type="primary" 
-              icon={<SaveOutlined />}
-              onClick={() => onSave(segments)}
-            >
+            <Button type="primary" icon={<SaveOutlined />} onClick={handleOriginalSave}>
               保存
             </Button>
             {onExport && (
@@ -376,8 +491,8 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
                     <Menu.Item key="doc">Word文档 (.docx)</Menu.Item>
                   </Menu>
                 }
-                visible={exportMenuVisible}
-                onVisibleChange={setExportMenuVisible}
+                open={exportMenuVisible}
+                onOpenChange={setExportMenuVisible}
               >
                 <Button icon={<ExportOutlined />} onClick={handleExport}>
                   导出 <DownOutlined />
@@ -391,7 +506,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
           <div>总片段: {segments.length}</div>
           <div>总时长: {formatDuration(totalDuration)}</div>
         </div>
-        
+
         <Table
           rowKey={(record, index) => String(index)}
           dataSource={segments}
@@ -399,9 +514,9 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
           pagination={false}
           className={styles.segmentsTable}
           footer={() => (
-            <Button 
-              type="dashed" 
-              icon={<PlusOutlined />} 
+            <Button
+              type="dashed"
+              icon={<PlusOutlined />}
               block
               onClick={handleAddSegment}
             >
@@ -409,14 +524,11 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
             </Button>
           )}
         />
-        
+
         {editingIndex !== null && (
           <div className={styles.editForm}>
             <Card title={`编辑片段 #${editingIndex + 1}`} className={styles.editCard}>
-              <Form
-                form={editForm}
-                layout="vertical"
-              >
+              <Form form={editForm} layout="vertical">
                 <div className={styles.timeInputs}>
                   <Form.Item
                     name="start"
@@ -425,7 +537,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
                   >
                     <Input type="number" step="0.1" min="0" />
                   </Form.Item>
-                  
+
                   <Form.Item
                     name="end"
                     label="结束时间 (秒)"
@@ -444,7 +556,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
                     <Input type="number" step="0.1" min="0" />
                   </Form.Item>
                 </div>
-                
+
                 <Form.Item
                   name="type"
                   label="类型"
@@ -457,7 +569,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
                     <Select.Option value="transition">转场</Select.Option>
                   </Select>
                 </Form.Item>
-                
+
                 <Form.Item
                   name="content"
                   label="内容"
@@ -465,7 +577,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
                 >
                   <Input.TextArea rows={4} />
                 </Form.Item>
-                
+
                 <div className={styles.formActions}>
                   <Space>
                     <Button onClick={handleCancelEdit}>取消</Button>
@@ -477,10 +589,11 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
           </div>
         )}
       </Card>
-      
+
+      {/* 预览模态框 */}
       <Modal
         title="预览片段"
-        visible={previewVisible}
+        open={previewVisible}
         onCancel={() => setPreviewVisible(false)}
         footer={null}
         width={700}
@@ -492,7 +605,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
               <p>正在生成预览...</p>
             </div>
           ) : (
-            <video 
+            <video
               src={previewSrc}
               controls
               autoPlay
@@ -501,10 +614,11 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
           )}
         </div>
       </Modal>
-      
+
+      {/* AI 优化模态框 */}
       <Modal
         title="AI 优化脚本"
-        visible={aiModalVisible}
+        open={aiModalVisible}
         onCancel={() => setAiModalVisible(false)}
         onOk={handleAIImprove}
       >
@@ -515,4 +629,4 @@ const ScriptEditor: React.FC<ScriptEditorProps> = (props) => {
   );
 };
 
-export default ScriptEditor; 
+export default ScriptEditor;
