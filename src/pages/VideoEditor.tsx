@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Layout, Card, Button, Dropdown, Typography, Tabs,
   Row, Col, message, Tooltip, Empty, Space, Tag, Progress
@@ -28,6 +28,7 @@ const { TabPane } = Tabs;
 
 const VideoEditor: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const navigate = useNavigate();
   
   // 状态管理

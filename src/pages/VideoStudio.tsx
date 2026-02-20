@@ -29,8 +29,11 @@ import type { ScriptData } from '@/core/types';
 import type { VideoMetadata } from '@/services/videoService';
 
 const { Content } = Layout;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { Title, Text } = Typography;
+const { 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  Title, 
+  Text 
+} = Typography;
 const { TabPane } = Tabs;
 
 // 格式化时间（秒 -> HH:MM:SS）
