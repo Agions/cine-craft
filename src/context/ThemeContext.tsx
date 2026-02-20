@@ -1,12 +1,18 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+type ThemeMode = 'light' | 'dark' | 'auto';
+
 interface ThemeContextType {
   isDarkMode: boolean;
+  themeMode: ThemeMode;
+  setThemeMode: (mode: ThemeMode) => void;
   toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
   isDarkMode: false,
+  themeMode: 'auto',
+  setThemeMode: () => {},
   toggleTheme: () => {}
 });
 
@@ -16,15 +22,20 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [themeMode, setThemeModeState] = useState<ThemeMode>('auto');
 
   useEffect(() => {
     // 从localStorage读取主题设置
-    const savedTheme = localStorage.getItem('theme');
+    const savedTheme = localStorage.getItem('theme') as ThemeMode | null;
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    // 设置主题模式
+    const initialMode: ThemeMode = savedTheme || 'auto';
+    setThemeModeState(initialMode);
     
     // 如果有保存的主题设置，使用该设置；否则，使用系统偏好
     const initialDarkMode = savedTheme 
-      ? savedTheme === 'dark'
+      ? savedTheme === 'dark' || (savedTheme === 'auto' && prefersDark)
       : prefersDark;
     
     setIsDarkMode(initialDarkMode);
@@ -35,8 +46,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     // 监听系统主题变化
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e: MediaQueryListEvent) => {
-      if (savedTheme === null) {
-        // 如果用户未手动设置主题，则跟随系统
+      if (savedTheme === null || savedTheme === 'auto') {
+        // 如果用户未手动设置主题或为auto，则跟随系统
         setIsDarkMode(e.matches);
         applyTheme(e.matches);
       }
@@ -60,6 +71,16 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       }
     };
   }, []);
+
+  const setThemeMode = (mode: ThemeMode) => {
+    setThemeModeState(mode);
+    localStorage.setItem('theme', mode);
+    
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const newDarkMode = mode === 'dark' || (mode === 'auto' && prefersDark);
+    setIsDarkMode(newDarkMode);
+    applyTheme(newDarkMode);
+  };
 
   const applyTheme = (dark: boolean) => {
     const rootElement = document.documentElement;
@@ -110,13 +131,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
   const toggleTheme = () => {
     const newDarkMode = !isDarkMode;
+    const newMode: ThemeMode = newDarkMode ? 'dark' : 'light';
     setIsDarkMode(newDarkMode);
-    localStorage.setItem('theme', newDarkMode ? 'dark' : 'light');
+    setThemeModeState(newMode);
+    localStorage.setItem('theme', newMode);
     applyTheme(newDarkMode);
   };
 
   return (
-    <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
+    <ThemeContext.Provider value={{ isDarkMode, themeMode, setThemeMode, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

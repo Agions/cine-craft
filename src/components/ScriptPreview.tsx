@@ -8,7 +8,7 @@ import {
   OrderedListOutlined,
   CalendarOutlined
 } from '@ant-design/icons';
-import type { Script } from '@/types';
+import type { Script, ScriptSegment } from '@/types';
 import styles from './ScriptPreview.module.less';
 
 const { Title, Paragraph, Text } = Typography;
@@ -32,7 +32,7 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({ script, onEdit, onExport 
     setCopying(true);
     const text = script.content
       .map(
-        (segment) =>
+        (segment: ScriptSegment) =>
           `[${formatTime(segment.startTime)} - ${formatTime(segment.endTime)}] ${
             segment.content
           }`
@@ -53,7 +53,7 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({ script, onEdit, onExport 
   };
 
   const totalDuration = script.content.reduce(
-    (acc, segment) => acc + (segment.endTime - segment.startTime),
+    (acc: number, segment: ScriptSegment) => acc + (segment.endTime - segment.startTime),
     0
   );
 
@@ -121,7 +121,7 @@ const ScriptPreview: React.FC<ScriptPreviewProps> = ({ script, onEdit, onExport 
       <Divider className={styles.mainDivider} />
 
       <div className={styles.scriptContent}>
-        {script.content.map((segment, index) => {
+        {script.content.map((segment: ScriptSegment, index: number) => {
           const typeInfo = getSegmentTypeInfo(segment.type);
           return (
             <div 

@@ -4,7 +4,7 @@ import { VideoCameraOutlined } from '@ant-design/icons';
 import { invoke } from '@tauri-apps/api/tauri';
 import { v4 as uuidv4 } from 'uuid';
 import VideoUploader from './VideoUploader';
-import type { VideoAnalysis, KeyMoment, Emotion } from '@/types';
+import type { VideoAnalysis, KeyMoment, Emotion } from '../types';
 import styles from './VideoAnalyzer.module.less';
 
 const { Title, Paragraph } = Typography;
